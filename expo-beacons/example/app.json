@@ -1,0 +1,37 @@
+{
+  "expo": {
+    "name": "expo-beacons-example",
+    "slug": "expo-beacons-example",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "expo.modules.beacons.example",
+      "appleTeamId": "2QZ993R5X4",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "We need Bluetooth to detect nearby beacons",
+        "NSBluetoothPeripheralUsageDescription": "We need Bluetooth to detect nearby beacons.",
+        "NSLocationWhenInUseUsageDescription": "We need your location to detect iBeacons.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location to detect iBeacons in the background."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "expo.modules.beacons.example"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    }
+  }
+}
