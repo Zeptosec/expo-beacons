@@ -1,5 +1,12 @@
 # Expo beacons
-IBeacon scanner iOS platform in expo projects. Many other libraries work for android, but i couldn't get them to work with iOS. This package helps to get detect if beacon by specified regions is in range or not. That's it.
+IBeacon scanner **iOS platform** in expo projects. Many other libraries work for android, but i couldn't get them to work with iOS. This package helps to detect if iBeacon is detected in specified region. That's it.
+
+# Install
+```sh
+npx expo install expo-beacons
+```
+
+# Example
 ```js
 import * as Beacons from 'expo-beacons';
 
