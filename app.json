@@ -9,7 +9,15 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.thelastwall.test-ios-ble3",
+      "appleTeamId": "2QZ993R5X4",
+      "infoPlist": {
+        "NSBluetoothAlwaysUsageDescription": "We need Bluetooth to detect nearby beacons",
+        "NSBluetoothPeripheralUsageDescription": "We need Bluetooth to detect nearby beacons.",
+        "NSLocationWhenInUseUsageDescription": "We need your location to detect iBeacons.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "We need your location to detect iBeacons in the background."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -32,7 +40,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#ffffff"
         }
-      ]
+      ],
+      "react-native-ble-plx"
     ],
     "experiments": {
       "typedRoutes": true
