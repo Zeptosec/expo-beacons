@@ -1,118 +1,83 @@
-import Foundation
-import CoreBluetooth
 import CoreLocation
+import CoreBluetooth
 
-class BeaconManager: NSObject, CLLocationManagerDelegate, CBCentralManagerDelegate {
-    private var locationManager: CLLocationManager
-    private var centralManager: CBCentralManager
-    private var isScanning = false
-    var onBeaconDetected: (([String: Any]) -> Void)?
+class BeaconManager: NSObject, CLLocationManagerDelegate {
+    private let locationManager = CLLocationManager()
+    private var onBeaconDetected: (([String: Any]) -> Void)?
+    private var monitoredRegions: [CLBeaconIdentityConstraint] = []
+    private var permissionCompletion: ((Bool) -> Void)?
     
     override init() {
-        self.locationManager = CLLocationManager()
-        self.centralManager = CBCentralManager()
         super.init()
-        
-        self.locationManager.delegate = self
-        self.centralManager.delegate = self
+        locationManager.delegate = self
     }
     
-    func requestPermissions(completion: @escaping ([String: Bool]) -> Void) {
-        locationManager.requestWhenInUseAuthorization()
-        if centralManager.state == .unknown {
-            centralManager.delegate = self // Trigger Bluetooth permission prompt
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-            let hasLocationPermission = self.locationManager.authorizationStatus == .authorizedWhenInUse || self.locationManager.authorizationStatus == .authorizedAlways
-            let hasBluetoothPermission = self.centralManager.state == .poweredOn
+    func requestPermissions() async -> Bool {
+        return await withCheckedContinuation { continuation in
+            let status = locationManager.authorizationStatus
             
-            completion([
-                "location": hasLocationPermission,
-                "bluetooth": hasBluetoothPermission
-            ])
-        }
-    }
-    
-    func startScanning() {
-        guard !isScanning else { return }
-        
-        // Start iBeacon detection
-        let beaconRegion = CLBeaconRegion(uuid: UUID(), identifier: "AnyBeacon")
-        locationManager.startMonitoring(for: beaconRegion)
-        locationManager.startRangingBeacons(satisfying: beaconRegion.beaconIdentityConstraint)
-        
-        // Start BLE scanning for Eddystone
-        if centralManager.state == .poweredOn {
-            centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
-        }
-        
-        isScanning = true
-    }
-    
-    func stopScanning() {
-        guard isScanning else { return }
-        
-        // Stop iBeacon detection
-        for region in locationManager.monitoredRegions {
-            if let beaconRegion = region as? CLBeaconRegion {
-                locationManager.stopMonitoring(for: beaconRegion)
-                locationManager.stopRangingBeacons(satisfying: beaconRegion.beaconIdentityConstraint)
+            if status == .notDetermined {
+                locationManager.requestWhenInUseAuthorization()
+                self.permissionCompletion = { granted in
+                    continuation.resume(returning: granted)
+                }
+            } else {
+                continuation.resume(returning: status == .authorizedWhenInUse || status == .authorizedAlways)
             }
         }
-        
-        // Stop BLE scanning
-        centralManager.stopScan()
-        isScanning = false
+    }
+
+    func startScanning(uuids: [String], onDetected: @escaping ([String: Any]) -> Void) {
+        onBeaconDetected = onDetected
+        if CLLocationManager.isMonitoringAvailable(for: CLBeaconRegion.self) {
+            for uuid in uuids {
+                let region = CLBeaconIdentityConstraint(uuid: UUID(uuidString: uuid)!)
+                locationManager.startRangingBeacons(satisfying: region)
+                monitoredRegions.append(region)
+            }
+        }
     }
     
-    // MARK: - CLLocationManagerDelegate
-    private func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], satisfying constraint: CLBeaconIdentityConstraint) {
+    func updateMonitoredRegions(with uuids: [String]) {
+        let newUUIDs = Set(uuids.compactMap { UUID(uuidString: $0) })
+        var existingUUIDs = Set(monitoredRegions.map { $0.uuid })
+        
+        // Remove regions that are no longer in the passed list
+        for region in monitoredRegions where !newUUIDs.contains(region.uuid) {
+            locationManager.stopRangingBeacons(satisfying: region)
+            existingUUIDs.remove(region.uuid)
+        }
+        
+        // Add new regions that are not already being monitored
+        for uuid in newUUIDs.subtracting(existingUUIDs) {
+            let region = CLBeaconIdentityConstraint(uuid: uuid)
+            locationManager.startRangingBeacons(satisfying: region)
+            monitoredRegions.append(region)
+        }
+
+        // Update monitored regions list after removals
+        monitoredRegions = monitoredRegions.filter { newUUIDs.contains($0.uuid) }
+    }
+
+    func stopScanning() {
+        for region in monitoredRegions {
+            locationManager.stopRangingBeacons(satisfying: region)
+        }
+        monitoredRegions.removeAll()
+    }
+
+    func locationManager(_ manager: CLLocationManager, didRangeBeacons beacons: [CLBeacon], in region: CLBeaconRegion) {
         for beacon in beacons {
+//            dump(beacon)
             let beaconData: [String: Any] = [
-                "type": "iBeacon",
                 "uuid": beacon.uuid.uuidString,
                 "major": beacon.major,
                 "minor": beacon.minor,
                 "proximity": beacon.proximity.rawValue,
                 "accuracy": beacon.accuracy,
-                "rssi": beacon.rssi
+                "rssi": beacon.rssi,
             ]
             onBeaconDetected?(beaconData)
         }
-    }
-    
-    // MARK: - CBCentralManagerDelegate
-    func centralManagerDidUpdateState(_ central: CBCentralManager) {
-        // Handle Bluetooth state updates
-        if central.state == .poweredOn {
-            if isScanning {
-                centralManager.scanForPeripherals(withServices: nil, options: [CBCentralManagerScanOptionAllowDuplicatesKey: true])
-            }
-        }
-    }
-    
-    func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String: Any], rssi RSSI: NSNumber) {
-        // Parse Eddystone advertisement
-        if let serviceData = advertisementData[CBAdvertisementDataServiceDataKey] as? [CBUUID: Data] {
-            for (uuid, data) in serviceData {
-                if uuid.uuidString == "FEAA" { // Eddystone UUID
-                    let eddystoneData = parseEddystoneData(data: data)
-                    let beaconData: [String: Any] = [
-                        "type": "Eddystone",
-                        "namespaceId": eddystoneData.namespaceId,
-                        "instanceId": eddystoneData.instanceId,
-                        "rssi": RSSI
-                    ]
-                    onBeaconDetected?(beaconData)
-                }
-            }
-        }
-    }
-    
-    private func parseEddystoneData(data: Data) -> (namespaceId: String, instanceId: String) {
-        let namespaceId = data.subdata(in: 2..<12).map { String(format: "%02X", $0) }.joined()
-        let instanceId = data.subdata(in: 12..<18).map { String(format: "%02X", $0) }.joined()
-        return (namespaceId, instanceId)
     }
 }

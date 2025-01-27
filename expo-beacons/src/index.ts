@@ -2,16 +2,25 @@
 // and on native platforms to ExpoBeaconsModule.ts
 // export { default } from './ExpoBeaconsModule';
 
-import ExpoBeaconsModule from "./ExpoBeaconsModule"
+import ExpoBeaconsModule from "./ExpoBeaconsModule";
 
-export type DetectedBeacon = {
-    "accuracy": number,
-    "major": number,
-    "minor": number,
-    "proximity": number,
-    "rssi": number,
-    "uuid": string
-}
+type IBeaconDataType = {
+    "rssi": number;
+    "uuid": string;
+    "accuracy": number;  // iBeacon
+    "major": number;     // iBeacon
+    "minor": number;     // iBeacon
+    "proximity": number; // iBeacon
+};
+
+type EddyStoneDataType = {
+    "rssi": number;
+    "uuid": string;
+    namespace: string;   // EddyStone
+    instance: string;     // EddyStone
+};
+
+export type DetectedBeacon = IBeaconDataType | EddyStoneDataType
 
 export async function startScanning(uuids: string[]): Promise<void> {
     await ExpoBeaconsModule.startScanning(uuids);
@@ -29,6 +38,12 @@ export function updateMonitoredRegions(uuids: string[]): void {
     ExpoBeaconsModule.updateMonitoredRegions(uuids);
 }
 
-export function addBeaconListener(listener: (event: { data: DetectedBeacon }) => void) {
-    return ExpoBeaconsModule.addListener('onBeaconDetected', listener);
+export function addBeaconListener(
+    listener: (event: { data: DetectedBeacon }) => void,
+) {
+    return ExpoBeaconsModule.addListener("onBeaconDetected", listener);
+}
+
+export function restartScanning(): void {
+    ExpoBeaconsModule.restartScanning();
 }

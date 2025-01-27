@@ -1,48 +1,66 @@
 import { useEvent } from 'expo';
 import * as Beacons from 'expo-beacons';
 import { useEffect, useState } from 'react';
-import { Button, EventSubscription, Pressable, SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
-// ["16967031-4a76-9c35-886d-000050000035"]
+import { SafeAreaView, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 export default function App() {
   // const onChangePayload = useEvent(ExpoBeacons, 'onChange');
-  const [granted, setGranted] = useState<boolean>();
 
   useEffect(() => {
-    let listener: EventSubscription | undefined;
-    async function reqPerms() {
-      const perm = await Beacons.requestPermissionsAsync();
-      setGranted(perm);
-      console.log(`req perms: ${perm}`)
-      if (perm) {
-        await Beacons.startScanning([]);
-        listener = Beacons.addBeaconListener((event) => {
-          console.log(event.data);
-        }) as any;
+    async function start() {
+      // request permissions for scanning beacons
+      const granted = await Beacons.requestPermissionsAsync();
+
+      if (!granted) {
+        console.log("Permission for scanning was not granted!");
+        return;
       }
+
+      // if permissions were granted start the scan
+      await Beacons.startScanning([]);
     }
-    reqPerms()
+
+    start()
+
+    // listen for detected beacons
+    const listener = Beacons.addBeaconListener(({ data }) => {
+      console.log("date", new Date())
+      if ("namespace" in data) {
+        // detected eddystone
+        console.log("Eddystone: ", data)
+      } else if ("major" in data) {
+        //detected ibeacon
+        console.log("iBeacon: ", data)
+      }
+    });
+
+    // restart eddystone scanning for consistent detection intervals
+    const restartInterval = setInterval(Beacons.restartScanning, 60 * 1000);
+
     return () => {
-      listener?.remove();
+      listener.remove();
+      clearInterval(restartInterval)
     }
   }, [])
 
-  function start(uuids: string[]) {
-    if (!granted) return;
+  function updateIBeaconRegions(uuids: string[]) {
+    // update iBeacon monitored regions
     Beacons.updateMonitoredRegions(uuids);
-    console.log("started scan");
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.container}>
         <Text style={styles.header}>Module API Example</Text>
-        <TouchableOpacity style={styles.button} onPress={() => start([])}>
+        <TouchableOpacity style={styles.button} onPress={() => updateIBeaconRegions([])}>
           <Text>Start 0</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => start(["16967031-4a76-9c35-886d-000050000035"])}>
+        <TouchableOpacity style={styles.button} onPress={() => updateIBeaconRegions(["16967031-4a76-9c35-886d-000050000035"])}>
           <Text>Start 1</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.button} onPress={() => start(["16967031-4a76-9c35-886d-000050000035", "16967031-4a76-9c35-886d-a0ba3b9eb045"])}>
+        <TouchableOpacity style={styles.button} onPress={() => updateIBeaconRegions(["16967031-4a76-9c35-886d-000090009022"])}>
+          <Text>Start 3</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => updateIBeaconRegions(["16967031-4a76-9c35-886d-000050000035", "16967031-4a76-9c35-886d-a0ba3b9eb045"])}>
           <Text>Start 2</Text>
         </TouchableOpacity>
       </ScrollView>
