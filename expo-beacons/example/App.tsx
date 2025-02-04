@@ -8,18 +8,20 @@ export default function App() {
   useEffect(() => {
     async function start() {
       // request permissions for scanning beacons
-      const granted = await Beacons.requestPermissionsAsync();
-
-      if (!granted) {
+      console.log("asking permissions!")
+      const result = await Beacons.requestPermissionsAsync();
+      console.log(`granted: `, result)
+      if (!result.granted) {
         console.log("Permission for scanning was not granted!");
         return;
       }
 
       // if permissions were granted start the scan
+      console.log("starting scan")
       await Beacons.startScanning([]);
     }
-
-    start()
+    console.log("useEffect");
+    setTimeout(() => start(), 2000);
 
     // listen for detected beacons
     const listener = Beacons.addBeaconListener(({ data }) => {
@@ -34,11 +36,11 @@ export default function App() {
     });
 
     // restart eddystone scanning for consistent detection intervals
-    const restartInterval = setInterval(Beacons.restartScanning, 60 * 1000);
+    // const restartInterval = setInterval(Beacons.restartScanning, 60 * 1000);
 
     return () => {
       listener.remove();
-      clearInterval(restartInterval)
+      // clearInterval(restartInterval)
     }
   }, [])
 

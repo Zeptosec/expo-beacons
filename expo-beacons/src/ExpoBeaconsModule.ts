@@ -1,9 +1,11 @@
 import { NativeModule, requireNativeModule } from "expo";
+import { PermissionResult } from ".";
 
 // import { ExpoBeaconsModuleEvents } from './ExpoBeacons.types';
 
 declare class ExpoBeaconsModule extends NativeModule<any> {
-  requestPermissions: () => Promise<boolean>;
+  getPermissions: () => Promise<PermissionResult>;
+  requestPermissions: () => Promise<PermissionResult>;
   startScanning: (
     uuids: string[],
     eddystoneServiceUUID?: string,

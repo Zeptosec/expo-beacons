@@ -41,3 +41,7 @@ android {
     abortOnError false
   }
 }
+
+dependencies {
+  implementation 'org.altbeacon:android-beacon-library:2.21.0'
+}

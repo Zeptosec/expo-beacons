@@ -1,7 +1,7 @@
 {
   "name": "expo-beacons",
   "version": "0.1.2",
-  "description": "Detecting iBeacons for iOS in specified regions for expo projects",
+  "description": "Eddystone & iBeacon scanning for Expo (iOS)",
   "main": "build/index.js",
   "types": "build/index.d.ts",
   "scripts": {

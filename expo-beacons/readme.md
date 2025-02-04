@@ -58,3 +58,6 @@ async function stopScanning(){
 
 # Develop
 Сlone the repository, then `cd expo-beacons`. Here run `npm run build` then open another terminal and `cd expo-beacons/example` and run `npm start`. After that open another terminal and `xed expo-beacons/example/ios` and run the project on physical device from Xcode.
+
+## Android
+You have to install `org.altbeacon:android-beacon-library` package in android studio.
