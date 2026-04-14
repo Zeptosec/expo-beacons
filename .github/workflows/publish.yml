@@ -1,0 +1,58 @@
+name: Publish to NPM
+on:
+  push:
+    tags:
+      - 'v*' # Trigger on any tag starting with v
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: 'npm'
+      
+      - run: npm ci
+      - run: npm run build
+
+      - name: Dry Run Publish
+        if: github.event_name == 'pull_request'
+        run: npm publish --dry-run
+
+  publish:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    environment: release
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Build project
+        run: npm run build
+
+      - name: Determine NPM Tag
+        id: tag_config
+        run: |
+          # If the tag contains "beta" (e.g., v1.0.0-beta.1), use "next" tag
+          if [[ "${{ github.ref_name }}" == *"beta"* ]]; then
+            echo "npm_tag=next" >> $GITHUB_OUTPUT
+          else
+            echo "npm_tag=latest" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Publish to NPM
+        run: npm publish --access public --tag ${{ steps.tag_config.outputs.npm_tag }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
