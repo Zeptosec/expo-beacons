@@ -14,6 +14,8 @@ npx expo install expo-beacons
 
 ## Quick Start Example
 
+Full example: [here](https://github.com/Zeptosec/expo-beacons/blob/main/example/App.tsx)
+
 ```tsx
 import React, { useEffect } from 'react';
 import { View, Text, Button, ScrollView, Platform } from 'react-native';
