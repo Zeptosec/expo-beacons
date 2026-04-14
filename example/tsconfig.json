@@ -1,0 +1,10 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "expo-beacons": ["../src/index"],
+      "expo-beacons/*": ["../src/*"]
+    }
+  }
+}
