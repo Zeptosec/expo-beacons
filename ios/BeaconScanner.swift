@@ -107,7 +107,6 @@ class BeaconScanner: NSObject, CLLocationManagerDelegate, CBCentralManagerDelega
                 major: beacon.major.intValue,
                 minor: beacon.minor.intValue,
                 rssi: beacon.rssi,
-                adHex: nil
             )
             
             onResult?(ibeacon.toMap())
