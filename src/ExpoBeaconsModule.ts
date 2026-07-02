@@ -1,6 +1,10 @@
-import { NativeModule, requireNativeModule } from 'expo';
+import { NativeModule, requireNativeModule } from "expo";
 
-import { BluetoothState, ExpoBeaconsModuleEvents, PermissionsResponse } from './ExpoBeacons.types';
+import type {
+  BluetoothState,
+  ExpoBeaconsModuleEvents,
+  PermissionsResponse,
+} from "./ExpoBeacons.types";
 
 declare class ExpoBeaconsModule extends NativeModule<ExpoBeaconsModuleEvents> {
   bluetoothState: BluetoothState;
@@ -14,4 +18,4 @@ declare class ExpoBeaconsModule extends NativeModule<ExpoBeaconsModuleEvents> {
 }
 
 // This call loads the native module object from the JSI.
-export default requireNativeModule<ExpoBeaconsModule>('ExpoBeacons');
+export default requireNativeModule<ExpoBeaconsModule>("ExpoBeacons");

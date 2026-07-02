@@ -1,4 +1,4 @@
-const { withAndroidManifest, withInfoPlist } = require('@expo/config-plugins');
+const { withAndroidManifest, withInfoPlist } = require("@expo/config-plugins");
 
 const withAndroidPermissions = (config) => {
   return withAndroidManifest(config, (config) => {
@@ -7,22 +7,29 @@ const withAndroidPermissions = (config) => {
   });
 };
 
-const withIosPermissions = (config, { bluetoothAlwaysPermission, locationAlwaysPermission, locationWhenInUsePermission } = {}) => {
+const withIosPermissions = (
+  config,
+  {
+    bluetoothAlwaysPermission,
+    locationAlwaysPermission,
+    locationWhenInUsePermission,
+  } = {},
+) => {
   return withInfoPlist(config, (config) => {
     config.modResults.NSBluetoothAlwaysUsageDescription =
       bluetoothAlwaysPermission ||
       config.modResults.NSBluetoothAlwaysUsageDescription ||
-      'Allow $(PRODUCT_NAME) to use Bluetooth';
+      "Allow $(PRODUCT_NAME) to use Bluetooth";
 
     config.modResults.NSLocationAlwaysAndWhenInUseUsageDescription =
       locationAlwaysPermission ||
       config.modResults.NSLocationAlwaysAndWhenInUseUsageDescription ||
-      'Allow $(PRODUCT_NAME) to use location to detect beacons';
+      "Allow $(PRODUCT_NAME) to use location to detect beacons";
 
     config.modResults.NSLocationWhenInUseUsageDescription =
       locationWhenInUsePermission ||
       config.modResults.NSLocationWhenInUseUsageDescription ||
-      'Allow $(PRODUCT_NAME) to use location to detect beacons';
+      "Allow $(PRODUCT_NAME) to use location to detect beacons";
 
     return config;
   });
@@ -30,25 +37,25 @@ const withIosPermissions = (config, { bluetoothAlwaysPermission, locationAlwaysP
 
 function setCustomPermissions(androidManifest) {
   const permissions = [
-    'android.permission.BLUETOOTH',
-    'android.permission.BLUETOOTH_ADMIN',
-    'android.permission.BLUETOOTH_CONNECT',
-    'android.permission.BLUETOOTH_SCAN',
-    'android.permission.ACCESS_FINE_LOCATION',
+    "android.permission.BLUETOOTH",
+    "android.permission.BLUETOOTH_ADMIN",
+    "android.permission.BLUETOOTH_CONNECT",
+    "android.permission.BLUETOOTH_SCAN",
+    "android.permission.ACCESS_FINE_LOCATION",
   ];
 
-  if (!androidManifest.manifest['uses-permission']) {
-    androidManifest.manifest['uses-permission'] = [];
+  if (!androidManifest.manifest["uses-permission"]) {
+    androidManifest.manifest["uses-permission"] = [];
   }
 
   for (const permission of permissions) {
     if (
-      !androidManifest.manifest['uses-permission'].some(
-        (e) => e.$['android:name'] === permission
+      !androidManifest.manifest["uses-permission"].some(
+        (e) => e.$["android:name"] === permission,
       )
     ) {
-      androidManifest.manifest.push({
-        $: { 'android:name': permission },
+      androidManifest.manifest["uses-permission"].push({
+        $: { "android:name": permission },
       });
     }
   }
@@ -61,4 +68,3 @@ module.exports = (config, props) => {
   config = withIosPermissions(config, props);
   return config;
 };
-
