@@ -150,4 +150,22 @@ A union type of `IBeacon` or `Eddystone`.
 }
 ```
 
+## Development
+To setup for development install packages in `expo-beacons` and `expo-beacons/example` folder. In the `expo-beacons` folder run:
 
+```sh
+npm run build
+```
+
+in the `expo-beacons/example` folder run:
+
+```sh
+npm expo start
+```
+
+and then open `expo-beacons/example/ios` with xcode or `expo-beacons/example/android` with android studio. There are commands in the `expo-beacons/package.json` for doing that:
+
+```sh
+npm run open:ios
+npm run open:android
+```
